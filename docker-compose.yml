@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  shoe-detector:
+    build: .
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./best_model.keras:/app/best_model.keras
+    restart: unless-stopped
