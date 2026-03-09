@@ -6,75 +6,26 @@ import os
 
 st.set_page_config(page_title="Vinted", page_icon="👗", layout="wide")
 
-# Exact Vinted brand colors:
-# Primary (Blue Lagoon):  #007782
-# Secondary (Killarney):  #356639
-# Background (Porcelain): #EDF2F2
-# Text:                   #1a1a1a
-# Borders:                #e0e0e0
-
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body, [class*="css"] {
-    font-family: 'Inter', sans-serif;
-    background: #EDF2F2;
-    color: #1a1a1a;
-}
+html, body, [class*="css"] { font-family: 'Inter', sans-serif; background: #ffffff; color: #1a1a1a; }
 #MainMenu, footer, header { visibility: hidden; }
 .block-container { padding: 0 !important; max-width: 100% !important; }
-
-/* ── SELL BUTTON ── */
-.stButton > button {
-    background: #007782 !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 6px !important;
-    font-weight: 600 !important;
-    font-size: 14px !important;
-    width: 100% !important;
-    padding: 10px !important;
-    font-family: 'Inter', sans-serif !important;
-}
-.stButton > button:hover { background: #005f6a !important; }
-
-/* ── PRODUCT CARD ── */
-.product-card {
-    background: white;
-    border-radius: 8px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: box-shadow 0.15s;
-    border: 1px solid #e8e8e8;
-    margin-bottom: 10px;
-}
+.product-card { background: white; border-radius: 8px; overflow: hidden; cursor: pointer; transition: box-shadow 0.15s; border: 1px solid #e8e8e8; margin-bottom: 10px; }
 .product-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
 .product-img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
 .product-info { padding: 8px 10px 12px; }
 .product-price { font-size: 15px; font-weight: 700; color: #1a1a1a; }
 .product-brand { font-size: 12px; color: #555; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .product-size  { font-size: 11px; color: #9e9e9e; margin-top: 2px; }
-.heart-btn {
-    position: absolute; top: 8px; right: 8px;
-    background: white; border-radius: 50%;
-    width: 30px; height: 30px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 15px; box-shadow: 0 1px 4px rgba(0,0,0,0.15);
-}
+.heart-btn { position: absolute; top: 8px; right: 8px; background: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 15px; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
 .cond-gently { background: #e8f5e9; color: #2e7d32; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 3px; display: inline-block; margin-top: 4px; }
 .cond-worn   { background: #fce4ec; color: #c62828; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 3px; display: inline-block; margin-top: 4px; }
-
-/* ── AI BOX ── */
-.ai-box {
-    background: #f0faf9;
-    border: 1.5px solid #007782;
-    border-radius: 8px;
-    padding: 14px 16px;
-    margin-top: 12px;
-}
-
+.ai-box { background: #f0faf9; border: 1.5px solid #007782; border-radius: 8px; padding: 14px 16px; margin-top: 12px; }
+.stButton > button { background: #007782 !important; color: white !important; border: none !important; border-radius: 6px !important; font-weight: 600 !important; font-size: 14px !important; width: 100% !important; padding: 10px !important; font-family: 'Inter', sans-serif !important; }
+.stButton > button:hover { background: #005f6a !important; }
 div[data-testid="column"] { padding: 2px !important; }
 .element-container { margin-bottom: 6px !important; }
 </style>
@@ -113,6 +64,12 @@ for k, v in [("page","browse"),("step",1),("ai",None),("listed",False),("cf","Al
     if k not in st.session_state:
         st.session_state[k] = v
 
+def go_sell():
+    st.session_state.page = "sell"
+    st.session_state.step = 1
+    st.session_state.ai   = None
+    st.session_state.listed = False
+
 listings = [
     {"title":"Nike Air Force 1 White","brand":"Nike","price":"€35","size":"42","condition":"Gently worn",
      "img":"https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=400&q=80"},
@@ -129,59 +86,38 @@ listings = [
 ]
 
 # ─────────────────────────────────────────────────────────────────────────────
-# NAVBAR  — white bg, #007782 logo & buttons
+# NAVBAR
 # ─────────────────────────────────────────────────────────────────────────────
-st.markdown("<div style='background:white;border-bottom:1px solid #e0e0e0;padding:10px 24px;display:flex;align-items:center;gap:12px'>", unsafe_allow_html=True)
 n1, n2, n3, n4, n5 = st.columns([0.7, 0.7, 4, 1.1, 0.7])
 with n1:
-    st.markdown("""
-    <div style='padding:6px 0'>
-        <span style='font-family:Georgia,serif;font-size:26px;font-weight:700;
-                     font-style:italic;color:#007782;letter-spacing:-1px'>Vinted</span>
-    </div>""", unsafe_allow_html=True)
+    st.markdown("<div style='padding:8px 0'><span style='font-family:Georgia,serif;font-size:26px;font-weight:700;font-style:italic;color:#007782'>Vinted</span></div>", unsafe_allow_html=True)
 with n2:
-    st.markdown("""
-    <div style='padding:6px 0'>
-        <span style='font-size:13px;color:#1a1a1a;border:1px solid #e0e0e0;
-                     padding:8px 14px;border-radius:6px;background:white;cursor:pointer'>
-            Articles ▾
-        </span>
-    </div>""", unsafe_allow_html=True)
+    st.markdown("<div style='padding:8px 0'><span style='font-size:13px;color:#1a1a1a;border:1px solid #e0e0e0;padding:8px 14px;border-radius:6px;cursor:pointer'>Articles ▾</span></div>", unsafe_allow_html=True)
 with n3:
     search = st.text_input("Search", placeholder="🔍  Find articles", label_visibility="collapsed", key="srch")
 with n4:
-    st.markdown("""
-    <div style='padding:6px 0'>
-        <span style='font-size:13px;font-weight:600;color:#007782;
-                     border:1.5px solid #007782;padding:8px 14px;
-                     border-radius:6px;cursor:pointer;white-space:nowrap'>
-            Register | Login
-        </span>
-    </div>""", unsafe_allow_html=True)
+    st.markdown("<div style='padding:6px 0'><span style='font-size:13px;font-weight:600;color:#007782;border:1.5px solid #007782;padding:8px 14px;border-radius:6px;cursor:pointer;white-space:nowrap'>Register | Login</span></div>", unsafe_allow_html=True)
 with n5:
     if st.button("Sell now", key="sell_nav"):
-        st.session_state.page = "sell"
-        st.session_state.step = 1
-        st.session_state.ai   = None
-        st.session_state.listed = False
+        go_sell()
         st.rerun()
-st.markdown("</div>", unsafe_allow_html=True)
 
-# ── Category bar — white, gray text ──────────────────────────────────────────
+st.markdown("<hr style='margin:0;border:none;border-top:1px solid #e8e8e8'>", unsafe_allow_html=True)
+
+# ── Category bar ──────────────────────────────────────────────────────────────
 cats = ["Ladies","Gentlemen","Designer","Children","Home","Electronics","Entertainment","Sport","About Vinted"]
 cat_cols = st.columns(len(cats))
-st.markdown("<div style='background:white;border-bottom:1px solid #e0e0e0;display:flex'>", unsafe_allow_html=True)
 for i, cat in enumerate(cats):
     with cat_cols[i]:
         st.button(cat, key=f"cat_{cat}")
-st.markdown("</div>", unsafe_allow_html=True)
+st.markdown("<hr style='margin:0;border:none;border-top:1px solid #e8e8e8'>", unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # BROWSE
 # ─────────────────────────────────────────────────────────────────────────────
 if st.session_state.page == "browse":
 
-    # Hero — full width image with white floating card
+    # Hero
     st.markdown("""
     <div style="position:relative;width:100%;height:400px;overflow:hidden">
         <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1400&q=80"
@@ -192,22 +128,28 @@ if st.session_state.page == "browse":
             <h2 style="font-size:23px;font-weight:700;color:#1a1a1a;line-height:1.35;margin-bottom:20px">
                 Ready to clean out your closet?
             </h2>
-            <div style="background:#007782;color:white;text-align:center;padding:11px 20px;
-                        border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:12px">
-                Start selling
-            </div>
-            <div style="text-align:center">
-                <span style="color:#007782;font-size:13px;font-weight:500;cursor:pointer">How it works</span>
-            </div>
+            <div id="start-selling-placeholder"></div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # Info bar (same as Vinted)
+    # Working "Start selling" button overlaid using columns trick
+    _, hero_col, _ = st.columns([1, 1.2, 4])
+    with hero_col:
+        st.markdown("<div style='margin-top:-180px;position:relative;z-index:10'>", unsafe_allow_html=True)
+        if st.button("Start selling", key="hero_sell"):
+            go_sell()
+            st.rerun()
+        st.markdown("<div style='text-align:center;margin-top:6px'><span style='color:#007782;font-size:13px;font-weight:500;cursor:pointer'>How it works</span></div>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+
+    # Info banner
     st.markdown("""
-    <div style="background:white;border:1px solid #e0e0e0;border-radius:6px;padding:11px 20px;
+    <div style="background:#f9f9f9;border:1px solid #e8e8e8;border-radius:6px;padding:11px 20px;
                 font-size:13px;color:#555;display:flex;justify-content:space-between;
-                align-items:center;margin:12px 24px">
+                align-items:center;margin:0 24px 16px">
         <span>You will see the shipping costs at checkout.</span>
         <span style="cursor:pointer;color:#9e9e9e;font-size:16px">✕</span>
     </div>
@@ -231,7 +173,6 @@ if st.session_state.page == "browse":
 
     st.markdown(f"<p style='font-size:12px;color:#9e9e9e;padding:0 24px 8px'>{len(filtered)} items</p>", unsafe_allow_html=True)
 
-    # 3-col product grid
     cols = st.columns(3, gap="small")
     for i, item in enumerate(filtered):
         badge_cls = "cond-gently" if item["condition"]=="Gently worn" else "cond-worn"
@@ -260,7 +201,7 @@ elif st.session_state.page == "sell":
     if st.session_state.listed:
         st.markdown("""
         <div style="text-align:center;padding:80px 20px;max-width:480px;margin:32px auto;
-                    background:white;border-radius:12px;border:1px solid #e0e0e0">
+                    background:white;border-radius:12px;border:1px solid #e8e8e8">
             <div style="font-size:56px;margin-bottom:16px">🎉</div>
             <h2 style="color:#007782;font-size:22px;margin-bottom:8px">Item listed!</h2>
             <p style="color:#9e9e9e;font-size:14px">Buyers can now find your shoes on Vinted.</p>
@@ -282,7 +223,7 @@ elif st.session_state.page == "sell":
             st.markdown(f"<h2 style='font-size:17px;font-weight:700;padding:8px 0;color:#1a1a1a'>Add item · {step}/3</h2>", unsafe_allow_html=True)
 
         def dot(n, cur):
-            s = f"background:#007782;color:white" if n<=cur else "background:#e0e0e0;color:#9e9e9e"
+            s = "background:#007782;color:white" if n<=cur else "background:#e0e0e0;color:#9e9e9e"
             l = "✓" if n<cur else str(n)
             return f"<span style='{s};width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700'>{l}</span>"
 
@@ -363,7 +304,7 @@ elif st.session_state.page == "sell":
             is_g = form.get("cond","") == "Gently worn"
             ai_tag = f'<span style="background:#f0faf9;color:#007782;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;border:1px solid #007782">🤖 AI verified · {ai["confidence"]:.0f}%</span>' if ai else ""
             st.markdown(f"""
-            <div style="background:white;border-radius:8px;padding:16px;margin-bottom:16px;border:1px solid #e0e0e0">
+            <div style="background:white;border-radius:8px;padding:16px;margin-bottom:16px;border:1px solid #e8e8e8">
                 <div style="font-size:16px;font-weight:700;margin-bottom:4px">{form.get('title','—')}</div>
                 <div style="font-size:12px;color:#9e9e9e;margin-bottom:10px">{form.get('brand','')}</div>
                 <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
@@ -382,9 +323,8 @@ elif st.session_state.page == "sell":
                 st.balloons()
                 st.rerun()
 
-# ── Footer ────────────────────────────────────────────────────────────────────
 st.markdown("""
-<div style="text-align:center;padding:28px 16px;margin-top:16px;border-top:1px solid #e0e0e0;background:white">
+<div style="text-align:center;padding:28px 16px;margin-top:16px;border-top:1px solid #e8e8e8;background:white">
     <span style="font-family:Georgia,serif;font-size:22px;font-weight:700;font-style:italic;color:#007782">Vinted</span>
     <p style="font-size:11px;color:#9e9e9e;margin-top:6px">Fashion Item Damage Detection · BUAS ADS-AI · Qusai 236866</p>
 </div>
