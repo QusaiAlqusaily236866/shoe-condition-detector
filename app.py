@@ -27,16 +27,24 @@ div[data-testid="column"] { padding: 4px !important; }
 </style>
 """, unsafe_allow_html=True)
 
-# ── Model ─────────────────────────────────────────────────────────────────────
-MODEL_PATH  = "best_model.keras"
+# ── Model loading ─────────────────────────────────────────────────────────────
 CLASS_NAMES = ["Gently worn", "worn out"]
 IMG_SIZE    = (160, 160)
 
 @st.cache_resource
 def load_model():
-    if not os.path.exists(MODEL_PATH):
+    # Local run — model file exists next to app.py
+    if os.path.exists("best_model.keras"):
+        return tf.keras.models.load_model("best_model.keras")
+    # Cloud run — download from Hugging Face
+    try:
+        from huggingface_hub import hf_hub_download
+        hf_repo = st.secrets["HF_REPO"]
+        path = hf_hub_download(repo_id=hf_repo, filename="best_model.keras")
+        return tf.keras.models.load_model(path)
+    except Exception as e:
+        st.error(f"Could not load model: {e}")
         return None
-    return tf.keras.models.load_model(MODEL_PATH)
 
 def preprocess(img):
     img = img.convert("RGB").resize(IMG_SIZE)
@@ -80,7 +88,7 @@ n1, n2, n3 = st.columns([1, 5, 1])
 with n1:
     st.markdown("<div style='padding:14px 0'><span style='font-size:26px;font-weight:800;color:#09B1BA;letter-spacing:-1px'>vinted</span></div>", unsafe_allow_html=True)
 with n2:
-    search = st.text_input("", placeholder="🔍  Search shoes...", label_visibility="collapsed", key="search_box")
+    search = st.text_input("Search", placeholder="🔍  Search shoes...", label_visibility="collapsed", key="search_box")
 with n3:
     if st.button("＋ Sell now", key="sell_btn"):
         st.session_state.page = "sell"
@@ -89,7 +97,7 @@ with n3:
         st.session_state.listed = False
         st.rerun()
 
-st.markdown("<hr style='margin:0 0 0 0;border:none;border-top:1px solid #e8e8e8'>", unsafe_allow_html=True)
+st.markdown("<hr style='margin:0;border:none;border-top:1px solid #e8e8e8'>", unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # BROWSE PAGE
@@ -103,16 +111,13 @@ if st.session_state.page == "browse":
     </div>
     """, unsafe_allow_html=True)
 
-    # Filter buttons
-    st.markdown("<div style='padding:12px 0 4px'>", unsafe_allow_html=True)
-    fc = st.columns([1,1,1,6])
-    for i, f in enumerate(["All","Gently worn","Worn out"]):
+    fc = st.columns([1, 1, 1, 6])
+    for i, f in enumerate(["All", "Gently worn", "Worn out"]):
         with fc[i]:
             if st.button(f, key=f"f_{f}"):
                 st.session_state.active_filter = f
                 st.rerun()
 
-    # Filter & search
     af = st.session_state.active_filter
     filtered = [l for l in listings if
                 af == "All" or
@@ -123,7 +128,6 @@ if st.session_state.page == "browse":
 
     st.markdown(f"<p style='color:#888;font-size:13px;padding:4px 0'>{len(filtered)} items found</p>", unsafe_allow_html=True)
 
-    # Grid — 3 columns
     cols = st.columns(3)
     for i, shoe in enumerate(filtered):
         badge = ('<span class="badge-gently">✅ Gently worn</span>'
@@ -162,12 +166,9 @@ elif st.session_state.page == "sell":
             st.session_state.page = "browse"
             st.session_state.listed = False
             st.rerun()
-
     else:
         step = st.session_state.sell_step
-
-        # Header
-        hc1, hc2 = st.columns([1,6])
+        hc1, hc2 = st.columns([1, 6])
         with hc1:
             if st.button("← Back"):
                 if step == 1:
@@ -178,26 +179,23 @@ elif st.session_state.page == "sell":
         with hc2:
             st.markdown("<h2 style='margin:8px 0;font-size:20px'>List your shoes</h2>", unsafe_allow_html=True)
 
-        # Step indicator
         def pill(n, current):
             if n < current:  return f"<span style='background:#09B1BA;color:white;border-radius:50%;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700'>✓</span>"
             if n == current: return f"<span style='background:#09B1BA;color:white;border-radius:50%;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700'>{n}</span>"
             return f"<span style='background:#e0e0e0;color:#aaa;border-radius:50%;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:12px'>{n}</span>"
 
-        labels = ["Photo & AI","Details","Publish"]
+        labels = ["Photo & AI", "Details", "Publish"]
         pills_html = " <span style='color:#ddd;margin:0 4px'>→</span> ".join(
             f"{pill(i+1,step)} <b style='color:{'#09B1BA' if step==i+1 else '#aaa'};font-size:13px'>{labels[i]}</b>"
             for i in range(3)
         )
         st.markdown(f"<div style='display:flex;align-items:center;gap:6px;padding:8px 0 20px'>{pills_html}</div>", unsafe_allow_html=True)
 
-        # ── STEP 1 ────────────────────────────────────────────────────────
         if step == 1:
             uploaded = st.file_uploader("Upload a photo of your shoes", type=["jpg","jpeg","png"])
             if uploaded:
                 img = Image.open(uploaded)
                 st.image(img, use_container_width=True, caption="Your photo")
-
                 if st.session_state.ai_result is None:
                     if st.button("✨ Detect condition with AI"):
                         with st.spinner("🔍 AI is inspecting your shoes..."):
@@ -207,7 +205,6 @@ elif st.session_state.page == "sell":
                             else:
                                 st.error("Model not loaded.")
                         st.rerun()
-
                 if st.session_state.ai_result:
                     r = st.session_state.ai_result
                     badge = ('<span class="badge-gently">✅ ' + r["condition"] + '</span>'
@@ -240,7 +237,6 @@ elif st.session_state.page == "sell":
                         st.session_state.sell_step = 2
                         st.rerun()
 
-        # ── STEP 2 ────────────────────────────────────────────────────────
         elif step == 2:
             ai = st.session_state.ai_result
             default_cond = ai["condition"] if ai else "Gently worn"
@@ -261,7 +257,6 @@ elif st.session_state.page == "sell":
                 else:
                     st.warning("Please fill in title and price.")
 
-        # ── STEP 3 ────────────────────────────────────────────────────────
         elif step == 3:
             form = st.session_state.get("_form", {})
             ai   = st.session_state.ai_result
@@ -286,7 +281,6 @@ elif st.session_state.page == "sell":
                 st.balloons()
                 st.rerun()
 
-# Footer
 st.markdown("""
 <div style="text-align:center;font-size:12px;color:#aaa;padding:24px;margin-top:32px;border-top:1px solid #f0f0f0">
     Fashion Item Damage Detection · BUAS ADS-AI Block C · Powered by your CNN 🤖
