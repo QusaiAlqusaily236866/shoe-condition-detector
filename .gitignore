@@ -1,0 +1,4 @@
+backend/best_model.keras
+__pycache__/
+*.pyc
+.env
