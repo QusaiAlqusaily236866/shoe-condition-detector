@@ -1,2 +1,0 @@
-# shoe-condition-detector
-
